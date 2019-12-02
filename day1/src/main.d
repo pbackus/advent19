@@ -1,5 +1,5 @@
-static import first;
-static import second;
+static import one;
+static import two;
 import common;
 
 import std.algorithm;
@@ -17,7 +17,7 @@ void partOne()
 {
 	stdin
 		.byInt
-		.fuelTotal!(first.fuel)
+		.fuelTotal!(one.fuel)
 		.writeln;
 }
 
@@ -25,7 +25,7 @@ void partTwo()
 {
 	stdin
 		.byInt
-		.fuelTotal!(second.fuel)
+		.fuelTotal!(two.fuel)
 		.writeln;
 }
 

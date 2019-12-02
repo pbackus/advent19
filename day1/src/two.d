@@ -3,12 +3,12 @@ import std.algorithm;
 
 int fuel(int mass)
 {
-	static import first;
+	static import one;
 
 	if (mass == 0) {
 		return 0;
 	} else {
-		int baseFuel = first.fuel(mass);
+		int baseFuel = one.fuel(mass);
 		return baseFuel + fuel(baseFuel);
 	}
 }
