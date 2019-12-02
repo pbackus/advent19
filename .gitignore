@@ -1,0 +1,15 @@
+.dub
+docs.json
+__dummy.html
+docs/
+/advent19
+advent19.so
+advent19.dylib
+advent19.dll
+advent19.a
+advent19.lib
+advent19-test-*
+*.exe
+*.o
+*.obj
+*.lst

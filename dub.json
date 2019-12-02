@@ -1,0 +1,9 @@
+{
+	"authors": [
+		"Paul Backus"
+	],
+	"copyright": "Copyright © 2019, Paul Backus",
+	"description": "Advent of Code 2019",
+	"license": "MIT",
+	"name": "advent19"
+}
