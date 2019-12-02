@@ -5,5 +5,8 @@
 	"copyright": "Copyright © 2019, Paul Backus",
 	"description": "Advent of Code 2019",
 	"license": "MIT",
-	"name": "advent19"
+	"name": "advent19",
+	"subPackages": [
+		"./day1"
+	]
 }
