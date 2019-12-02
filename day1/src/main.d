@@ -12,25 +12,31 @@ auto byInt(File input)
 	return input.byLine.map!(to!int);
 }
 
-int firstSolution()
+void partOne()
 {
-	return stdin.byInt.fuelTotal!(first.fuel);
+	stdin
+		.byInt
+		.fuelTotal!(first.fuel)
+		.writeln;
 }
 
-int secondSolution()
+void partTwo()
 {
-	return stdin.byInt.fuelTotal!(second.fuel);
+	stdin
+		.byInt
+		.fuelTotal!(second.fuel)
+		.writeln;
 }
 
 void main(string[] args)
 {
-	bool partTwo = false;
+	int part = 1;
 
-	getopt(args, "2", &partTwo);
+	getopt(args, "part|p", &part);
 
-	if (!partTwo) {
-		writeln(firstSolution);
-	} else {
-		writeln(secondSolution);
+	if (part == 1) {
+		partOne;
+	} else if (part == 2) {
+		partTwo;
 	}
 }
