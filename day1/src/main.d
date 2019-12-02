@@ -1,4 +1,6 @@
-import first;
+static import first;
+static import second;
+import common;
 
 import std.algorithm;
 import std.conv;
@@ -10,8 +12,25 @@ auto byInt(File input)
 	return input.byLine.map!(to!int);
 }
 
+int firstSolution()
+{
+	return stdin.byInt.fuelTotal!(first.fuel);
+}
+
+int secondSolution()
+{
+	return stdin.byInt.fuelTotal!(second.fuel);
+}
+
 void main(string[] args)
 {
-	auto masses = stdin.byInt;
-	masses.fuelTotal.writeln;
+	bool partTwo = false;
+
+	getopt(args, "2", &partTwo);
+
+	if (!partTwo) {
+		writeln(firstSolution);
+	} else {
+		writeln(secondSolution);
+	}
 }
