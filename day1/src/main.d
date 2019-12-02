@@ -4,6 +4,7 @@ import common;
 
 import std.algorithm;
 import std.conv;
+import std.format;
 import std.getopt;
 import std.stdio;
 
@@ -32,7 +33,17 @@ void main(string[] args)
 {
 	int part = 1;
 
-	getopt(args, "part|p", &part);
+	auto options = getopt(args,
+		"part|p", "Part of the problem to solve (default: 1)", &part
+	);
+
+	if (options.helpWanted) {
+		defaultGetoptPrinter(
+			format("Usage: %s [-h] [-p N]", args[0]),
+			options.options
+		);
+		return;
+	}
 
 	if (part == 1) {
 		partOne;
