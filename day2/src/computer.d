@@ -53,6 +53,21 @@ struct Computer
 	{
 		while (!halted) { step; }
 	}
+
+	ref int noun()
+	{
+		return memory[1];
+	}
+	
+	ref int verb()
+	{
+		return memory[2];
+	}
+
+	int output() const
+	{
+		return memory[0];
+	}
 }
 
 int[] finalState(R)(R program)

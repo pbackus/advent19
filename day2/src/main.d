@@ -4,10 +4,12 @@ import std.algorithm;
 import std.array;
 import std.conv;
 import std.format;
+import std.functional;
 import std.getopt;
+import std.range;
 import std.stdio;
+import std.typecons;
 import std.utf;
-
 
 auto readProgram(File input)
 {
@@ -19,9 +21,11 @@ auto readProgram(File input)
 		.joiner;
 }
 
+alias unpack(alias fun) = tup => fun(tup.expand);
+
 void partOne()
 {
-	auto c = one.Computer(stdin.readProgram);
+	auto c = Computer(stdin.readProgram);
 	c.memory[1] = 12;
 	c.memory[2] = 2;
 	c.run;
@@ -30,7 +34,20 @@ void partOne()
 
 void partTwo()
 {
-	return;
+	int[] program = stdin.readProgram.array;
+
+	cartesianProduct(iota(0, 100), iota(0, 100))
+		.find!(unpack!((noun, verb) {
+			auto c = Computer(program);
+			c.noun = noun;
+			c.verb = verb;
+			c.run;
+			return c.output == 19690720;
+		}))
+		.front
+		.unpack!((noun, verb) {
+			writeln(100 * noun + verb);
+		});
 }
 
 void main(string[] args)
