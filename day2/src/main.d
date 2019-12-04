@@ -25,11 +25,10 @@ alias unpack(alias fun) = tup => fun(tup.expand);
 
 void partOne()
 {
-	auto c = Computer(stdin.readProgram);
-	c.memory[1] = 12;
-	c.memory[2] = 2;
-	c.run;
-	writeln(c.memory[0]);
+	stdin
+		.readProgram
+		.output(12, 2)
+		.writeln;
 }
 
 void partTwo()
@@ -37,13 +36,9 @@ void partTwo()
 	int[] program = stdin.readProgram.array;
 
 	cartesianProduct(iota(0, 100), iota(0, 100))
-		.find!(unpack!((noun, verb) {
-			auto c = Computer(program);
-			c.noun = noun;
-			c.verb = verb;
-			c.run;
-			return c.output == 19690720;
-		}))
+		.find!(unpack!((noun, verb) =>
+			program.output(noun, verb) == 19690720
+		))
 		.front
 		.unpack!((noun, verb) {
 			writeln(100 * noun + verb);
