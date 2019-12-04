@@ -1,4 +1,4 @@
-static import one;
+import computer;
 
 import std.algorithm;
 import std.array;
