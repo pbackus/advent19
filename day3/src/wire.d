@@ -22,10 +22,12 @@ struct Point
 	}
 }
 
+enum Point origin = Point(0, 0);
+
 unittest {
 	assert(Point(123, 0) + Point(0, 456) == Point(123, 456));
-	assert(Point(1, 1) + Point(-1, -1) == Point(0, 0));
-	assert(Point(0, 0) + Point(0, 0) == Point(0, 0));
+	assert(Point(1, 1) + Point(-1, -1) == origin);
+	assert(origin + origin == origin);
 }
 
 Point move(Direction direction, int distance)
@@ -50,71 +52,94 @@ int distance(Point a, Point b)
 
 int distance(Point p)
 {
-	return distance(p, Point(0, 0));
+	return distance(p, origin);
 }
 
 unittest {
-	assert(distance(Point(0, 0), Point(0, 5)) == 5);
-	assert(distance(Point(0, 5), Point(0, 0)) == 5);
+	assert(distance(origin, Point(0, 5)) == 5);
+	assert(distance(Point(0, 5), origin) == 5);
 	assert(distance(Point(0, 5)) == 5);
 	assert(distance(Point(0, 5), Point(0, 5)) == 0);
 }
 
 struct Segment
 {
-	private bool vertical;
-	private Point bottomLeft;
-	private int length;
+	private Point start_, end_;
 
 	this(Point start, Point end)
 		in (start.x == end.x || start.y == end.y)
 	{
-		vertical = start.x == end.x;
-		bottomLeft = Point(min(start.x, end.x), min(start.y, end.y));
-		length = distance(start, end);
+		start_ = start;
+		end_ = end;
+	}
+
+	invariant(start_.x == end_.x || start_.y == end_.y);
+
+	Point start()
+	{
+		return start_;
+	}
+
+	Point end()
+	{
+		return end_;
 	}
 
 	bool isHorizontal()
 	{
-		return !vertical;
+		return start_.y == end_.y;
 	}
 
 	bool isVertical()
 	{
-		return vertical;
+		return start_.x == end_.x;
 	}
 
 	int top()
 	{
-		return bottomLeft.y + (isVertical ? length : 0);
+		return max(start_.y, end_.y);
 	}
 
 	int bottom()
 	{
-		return bottomLeft.y;
+		return min(start_.y, end_.y);
 	}
 
 	int left()
 	{
-		return bottomLeft.x;
+		return min(start_.x, end_.x);
 	}
 
 
 	int right()
 	{
-		return bottomLeft.x + (isHorizontal ? length : 0);
+		return max(start_.x, end_.x);
 	}
 
 	int x()
 		in (isVertical)
 	{
-		return bottomLeft.x;
+		return start_.x;
 	}
 
 	int y()
 		in (isHorizontal)
 	{
-		return bottomLeft.y;
+		return start_.y;
+	}
+
+	int length()
+	{
+		return distance(start, end);
+	}
+}
+
+bool contains(Segment s, Point p)
+{
+	if (s.isHorizontal) {
+		return p.y == s.y && s.left <= p.x && p.x <= s.right;
+	} else {
+		return p.x == s.x && s.bottom <= p.y && p.y <= s.top;
 	}
 }
 
@@ -186,4 +211,19 @@ auto intersections(Wire a, Wire b)
 	return cartesianProduct(a.segments, b.segments)
 		.map!(unpack!((sa, sb) => intersections(sa, sb)))
 		.joiner;
+}
+
+int distanceAlong(Point p, Wire w)
+{
+	int result = 0;
+
+	foreach (s; w.segments) {
+		if (s.contains(p)) {
+			return result + distance(s.start, p);
+		}
+
+		result += s.length;
+	}
+
+	throw new Exception("Unreachable point.");
 }

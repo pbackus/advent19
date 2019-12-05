@@ -18,18 +18,19 @@ Wire readWire(const(char)[] line)
 		.enumerate
 		.map!(unpack!((i, step) => move(
 			step[0].to!Direction,
-			step[1 .. $].to!int - (i == 0)
+			step[1 .. $].to!int - (i == 0) // skip origin
 		)))
 		.pipe!((points) =>
 			chain(
 				only(Point(
+					// skip origin
 					0 + cast(int) sgn(points.front.x),
 					0 + cast(int) sgn(points.front.y)
 				)),
 				points
 			)
 		)
-		.cumulativeFold!((pos, move) => pos + move)(Point(0, 0))
+		.cumulativeFold!((pos, move) => pos + move)(origin)
 		.slide(2)
 		.map!array
 		.map!(pair => Segment(pair[0], pair[1]))
@@ -59,7 +60,18 @@ void partOne()
 
 void partTwo()
 {
-	return;
+	Wire[] wires = stdin.readWires;
+
+	assert(wires.length == 2, "Part 2 solution requires exactly 2 wires");
+
+	intersections(wires[0], wires[1])
+		.map!(p =>
+			p.distanceAlong(wires[0])
+			+ p.distanceAlong(wires[1])
+			+ 2 // include origin
+		)
+		.fold!min
+		.writeln;
 }
 
 void main(string[] args)
