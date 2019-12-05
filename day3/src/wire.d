@@ -14,7 +14,7 @@ enum Direction : char
 
 struct Point
 {
-	const int x, y;
+	int x, y;
 
 	Point opBinary(string op : "+")(Point rhs)
 	{
