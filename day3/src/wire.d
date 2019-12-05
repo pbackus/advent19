@@ -1,3 +1,5 @@
+import util;
+
 import std.algorithm;
 import std.math;
 import std.range;
@@ -177,4 +179,11 @@ unittest {
 struct Wire
 {
 	Segment[] segments;
+}
+
+auto intersection(Wire a, Wire b)
+{
+	return cartesianProduct(a.segments, b.segments)
+		.map!(unpack!((sa, sb) => intersection(sa, sb)))
+		.joiner;
 }
