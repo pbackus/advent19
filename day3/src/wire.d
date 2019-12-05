@@ -118,7 +118,7 @@ struct Segment
 	}
 }
 
-Point[] intersection(Segment a, Segment b)
+Point[] intersections(Segment a, Segment b)
 {
 	if (a.isHorizontal && b.isVertical)
 	{
@@ -132,7 +132,7 @@ Point[] intersection(Segment a, Segment b)
 			return [Point(x, y)];
 		}
 	} else if (a.isVertical && b.isHorizontal) {
-		return intersection(b, a);
+		return intersections(b, a);
 	} else if (a.isHorizontal && b.isHorizontal) {
 		if (a.y == b.y) {
 			int overlapLeft = max(a.left, b.left);
@@ -167,13 +167,13 @@ unittest {
 	Segment v0 = Segment(Point(0, -1), Point(0, 1));
 	Segment v1 = Segment(Point(1, -1), Point(1, 1));
 
-	assert(intersection(h0, h1).canFind(Point(0, 0)));
-	assert(intersection(h0, h1).canFind(Point(1, 0)));
-	assert(intersection(h0, v0) == [Point(0, 0)]);
-	assert(intersection(h0, v1) == [Point(1, 0)]);
-	assert(intersection(h1, v0) == [Point(0, 0)]);
-	assert(intersection(h1, v1) == [Point(1, 0)]);
-	assert(intersection(v0, v1) == []);
+	assert(intersections(h0, h1).canFind(Point(0, 0)));
+	assert(intersections(h0, h1).canFind(Point(1, 0)));
+	assert(intersections(h0, v0) == [Point(0, 0)]);
+	assert(intersections(h0, v1) == [Point(1, 0)]);
+	assert(intersections(h1, v0) == [Point(0, 0)]);
+	assert(intersections(h1, v1) == [Point(1, 0)]);
+	assert(intersections(v0, v1) == []);
 }
 
 struct Wire
@@ -181,9 +181,9 @@ struct Wire
 	Segment[] segments;
 }
 
-auto intersection(Wire a, Wire b)
+auto intersections(Wire a, Wire b)
 {
 	return cartesianProduct(a.segments, b.segments)
-		.map!(unpack!((sa, sb) => intersection(sa, sb)))
+		.map!(unpack!((sa, sb) => intersections(sa, sb)))
 		.joiner;
 }

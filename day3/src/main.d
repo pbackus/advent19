@@ -6,6 +6,7 @@ import std.conv;
 import std.format;
 import std.functional;
 import std.getopt;
+import std.math;
 import std.range;
 import std.stdio;
 
@@ -14,11 +15,20 @@ Wire readWire(const(char)[] line)
 	return Wire(
 		line
 		.splitter(',')
-		.map!(step => move(
+		.enumerate
+		.map!(unpack!((i, step) => move(
 			step[0].to!Direction,
-			step[1 .. $].to!int
-		))
-		.pipe!(points => chain(only(Point(0, 0)), points))
+			step[1 .. $].to!int - (i == 0)
+		)))
+		.pipe!((points) =>
+			chain(
+				only(Point(
+					0 + cast(int) sgn(points.front.x),
+					0 + cast(int) sgn(points.front.y)
+				)),
+				points
+			)
+		)
 		.cumulativeFold!((pos, move) => pos + move)(Point(0, 0))
 		.slide(2)
 		.map!array
@@ -37,7 +47,14 @@ Wire[] readWires(File input)
 
 void partOne()
 {
-	stdin.readWires.writeln;
+	Wire[] wires = stdin.readWires;
+
+	assert(wires.length == 2, "Part 1 solution requires exactly 2 wires.");
+
+	intersections(wires[0], wires[1])
+		.map!distance
+		.fold!min
+		.writeln;
 }
 
 void partTwo()
