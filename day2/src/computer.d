@@ -85,7 +85,7 @@ unittest {
 	assert([1, 1, 1, 4, 99, 5, 6, 0, 99].finalState == [30, 1, 1, 4, 2, 5, 6, 0, 99]);
 }
 
-int output(R)(R program, int noun, int verb)
+int outputFor(R)(R program, int noun, int verb)
 	if (isInputRange!R && is(ElementType!R : int))
 {
 	auto c = Computer(program);

@@ -27,7 +27,7 @@ void partOne()
 {
 	stdin
 		.readProgram
-		.output(12, 2)
+		.outputFor(12, 2)
 		.writeln;
 }
 
@@ -37,7 +37,7 @@ void partTwo()
 
 	cartesianProduct(iota(0, 100), iota(0, 100))
 		.find!(unpack!((noun, verb) =>
-			program.output(noun, verb) == 19690720
+			program.outputFor(noun, verb) == 19690720
 		))
 		.front
 		.unpack!((noun, verb) {
