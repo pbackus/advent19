@@ -3,7 +3,6 @@ import util;
 import std.algorithm;
 import std.array;
 import std.conv;
-import std.exception;
 import std.range;
 import std.typecons;
 
@@ -21,17 +20,17 @@ unittest {
 	assert(!(-1).isDigit);
 }
 
-bool isValid(const(int)[] password)
+bool isValid(int[6] digits)
 {
-	alias Result = Tuple!(bool, "hasPair", bool, "increasing");
+	alias Result = Tuple!(bool, "hasEqualPair", bool, "increasing");
 
-	return password[]
+	return digits[]
 		.slide(2)
 		.map!(pair => pair.staticArray!2)
-		.fold!((soFar, digits) =>
+		.fold!((soFar, pair) =>
 			Result(
-				soFar.hasPair || digits[0] == digits[1],
-				soFar.increasing && digits[0] <= digits[1]
+				soFar.hasEqualPair || pair[0] == pair[1],
+				soFar.increasing && pair[0] <= pair[1]
 			)
 		)(Result(false, true))
 		.unpack!((hasPair, increasing) =>
@@ -41,8 +40,79 @@ bool isValid(const(int)[] password)
 
 unittest {
 	assert( isValid([1, 1, 1, 1, 1, 1]));
+	assert( isValid([1, 2, 3, 3, 4, 5]));
 	assert(!isValid([2, 2, 3, 4, 5, 0]));
 	assert(!isValid([1, 2, 3, 7, 8, 9]));
+}
+
+void removeDecrease(ref int[6] digits)
+{
+	digits[]
+		.enumerate
+		.slide(2)
+		.map!(pair => pair.staticArray!2)
+		.find!(pair => pair[0].value > pair[1].value)
+		.take(1)
+		.each!((decreasingPair) {
+			decreasingPair[0].unpack!((index, value) {
+				digits[index .. $] = value;
+			});
+		});
+}
+
+unittest {
+	int[6] a1 = [1, 1, 2, 3, 4, 0];
+	int[6] a2 = [1, 1, 2, 3, 4, 5];
+
+	a1.removeDecrease;
+	a2.removeDecrease;
+
+	assert(a1 == [1, 1, 2, 3, 4, 4]);
+	assert(a2 == [1, 1, 2, 3, 4, 5]);
+}
+
+void increment(ref int[6] digits)
+{
+	int carry = 1;
+
+	digits[]
+		.retro
+		.each!((ref digit) {
+			digit += carry;
+			carry = digit / 10;
+			digit = digit % 10;
+			return (carry != 0).to!(Flag!"each");
+		});
+}
+
+unittest {
+	int[6] a1 = [1, 1, 2, 3, 4, 5];
+	int[6] a2 = [1, 1, 2, 3, 9, 9];
+	int[6] a3 = [9, 9, 9, 9, 9, 9];
+
+	a1.increment;
+	a2.increment;
+	a3.increment;
+
+	assert(a1 == [1, 1, 2, 3, 4, 6]);
+	assert(a2 == [1, 1, 2, 4, 0, 0]);
+	assert(a3 == [0, 0, 0, 0, 0, 0]);
+}
+
+int[6] next(int[6] password)
+{
+	
+	do {
+		password.increment;
+		password.removeDecrease;
+	} while (!password.isValid);
+
+	return password;
+}
+
+unittest {
+	assert([1, 1, 2, 3, 9, 9].next == [1, 1, 2, 4, 4, 4]);
+	assert([1, 2, 3, 4, 5, 5].next == [1, 2, 3, 4, 6, 6]);
 }
 
 struct Password
@@ -50,58 +120,29 @@ struct Password
 	private int[6] digits_;
 
 	invariant(digits_[].all!isDigit);
-	invariant(isValid(digits_[]));
+	invariant(digits_.isValid);
 
-	this(int[] digits)
-		in (digits.length == 6)
+	static Password above(int[6] digits)
 	{
-		digits_[] = digits[];
-		skipInvalid;
+		return Password(
+			digits.isValid ? digits : digits.next
+		);
 	}
 
-	private void skipInvalid()
-	{
-		digits_[]
-			.enumerate
-			.slide(2)
-			.map!(pair => pair.staticArray!2)
-			.find!(pair => pair[0].value > pair[1].value)
-			.take(1)
-			.each!((decreasingPair) {
-				decreasingPair[0].unpack!((index, value) {
-					digits_[index .. $] = value;
-				});
-			});
+	unittest {
+		assert(Password.above([2, 4, 8, 3, 4, 5]).digits
+			== [2, 4, 8, 8, 8, 8]);
+		assert(Password.above([7, 4, 6, 3, 1, 5]).digits
+			== [7, 7, 7, 7, 7, 7]);
 	}
 
-	int[6] digits()
+	int[6] digits() const
 	{
 		return digits_;
 	}
 
-	Password opUnary(string op : "++")()
+	Password next() const
 	{
-		int carry = 1;
-
-		digits_[]
-			.retro
-			.each!((ref digit) {
-				digit += carry;
-				carry = digit / 10;
-				digit = digit % 10;
-				return (carry != 0).to!(Flag!"each");
-			});
-
-		skipInvalid;
-		return this;
+		return Password(digits_.next);
 	}
-}
-
-unittest {
-	assert(Password([2, 2, 3, 4, 5, 0]).digits == [2, 2, 3, 4, 5, 5]);
-}
-
-unittest {
-	assert((++Password([1, 1, 2, 3, 4, 5])).digits == [1, 1, 2, 3, 4, 6]);
-	assert((++Password([1, 1, 2, 3, 9, 9])).digits == [1, 1, 2, 4, 4, 4]);
 }
