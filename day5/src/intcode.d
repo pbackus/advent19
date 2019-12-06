@@ -179,6 +179,11 @@ struct Computer(Input, Output)
 		store(arg(i), instruction.modes[i], val);
 	}
 
+	private void binaryOp(string op)()
+	{
+		storeArg(2, mixin("fetchArg(0) ", op, " fetchArg(1)"));
+	}
+
 	private Word read()
 	{
 		enforce(!input.empty, "Runtime error: read past end of input");
@@ -197,10 +202,10 @@ struct Computer(Input, Output)
 
 		final switch (instruction.opcode) with (Opcode) {
 			case Add:
-				storeArg(2, fetchArg(0) + fetchArg(1));
+				binaryOp!"+";
 				break;
 			case Multiply:
-				storeArg(2, fetchArg(0) * fetchArg(1));
+				binaryOp!"*";
 				break;
 			case Read:
 				storeArg(0, read);
@@ -221,10 +226,10 @@ struct Computer(Input, Output)
 				}
 				break;
 			case LessThan:
-				storeArg(2, fetchArg(0) < fetchArg(1));
+				binaryOp!"<";
 				break;
 			case Equals:
-				storeArg(2, fetchArg(0) == fetchArg(1));
+				binaryOp!"==";
 				break;
 			case Halt:
 				return;
