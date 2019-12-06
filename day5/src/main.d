@@ -28,7 +28,11 @@ void partOne()
 
 void partTwo()
 {
-	return;
+	auto program = stdin.readProgram;
+	auto input = only(5);
+	auto output = program.run(input);
+
+	output.each!writeln;
 }
 
 void main(string[] args)
