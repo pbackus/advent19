@@ -1,3 +1,5 @@
+import util;
+
 import std.algorithm;
 import std.array;
 import std.conv;
@@ -123,10 +125,7 @@ unittest {
 }
 
 struct Computer(Input, Output)
-	if (
-		isInputRange!Input && is(ElementType!Input : Word)
-		&& isOutputRange!(Output, Word)
-	)
+	if (isInputRangeOf!(Input, Word) && isOutputRange!(Output, Word))
 {
 	Word[] memory;
 	Instruction instruction;
@@ -136,7 +135,7 @@ struct Computer(Input, Output)
 	Output output;
 
 	this(Program)(Program program, Input input, Output output)
-		if (isInputRange!Program && is(ElementType!Program : Word))
+		if (isInputRangeOf!(Program, Word))
 	{
 		memory = program.map!(to!Word).array;
 		this.input = input;
@@ -235,12 +234,12 @@ struct Computer(Input, Output)
 				return;
 		}
 
-		pc += increment(instruction.opcode);
+		pc += instruction.opcode.increment;
 	}
 
 	bool halted() const
 	{
-		return memory[pc] == Opcode.Halt;
+		return instruction.opcode == Opcode.Halt;
 	}
 
 	void run()
@@ -249,7 +248,8 @@ struct Computer(Input, Output)
 	}
 }
 
-auto computer(
+Computer!(Input, Output)
+computer(
 	Program,
 	Input = Word[],
 	Output = NullSink
@@ -259,8 +259,8 @@ auto computer(
 	Output output = Output.init
 )
 	if (
-		isInputRange!Program && is(ElementType!Program : Word)
-		&& isInputRange!Input && is(ElementType!Input : Word)
+		isInputRangeOf!(Program, Word)
+		&& isInputRangeOf!(Input, Word)
 		&& isOutputRange!(Output, Word)
 	)
 {
@@ -268,10 +268,7 @@ auto computer(
 }
 
 Word[] run(Program, Input)(Program program, Input input)
-	if (
-		isInputRange!Program && is(ElementType!Program : Word)
-		&& isInputRange!Input && is(ElementType!Input : Word)
-	)
+	if (isInputRangeOf!(Program, Word) && isInputRangeOf!(Input, Word))
 {
 	auto output = appender!(Word[]);
 	auto computer = computer(program, input, output);
