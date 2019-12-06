@@ -21,11 +21,9 @@ void partOne()
 {
 	auto program = stdin.readProgram;
 	auto input = only(1);
-	auto output = appender!(Word[]);
-	auto computer = computer(program, input, output);
+	auto output = program.run(input);
 
-	computer.run;
-	output.data.each!writeln;
+	output.each!writeln;
 }
 
 void partTwo()
