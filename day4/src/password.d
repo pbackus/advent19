@@ -20,29 +20,49 @@ unittest {
 	assert(!(-1).isDigit);
 }
 
-bool isValid(int[6] digits)
-{
-	alias Result = Tuple!(bool, "hasEqualPair", bool, "increasing");
+private alias Result = Tuple!(bool, "hasValidPair", bool, "increasing");
 
+bool equalPair(int[6] digits, size_t i, size_t j)
+{
+	return digits[i] == digits[j];
+}
+
+bool isolatedPair(int[6] digits, size_t i, size_t j)
+{
+	return digits[i] == digits[j]
+		&& (i == 0 || digits[i - 1] != digits[i])
+		&& (j >= 5 || digits[j + 1] != digits[j]);
+}
+
+bool validWith(alias validPair)(int[6] digits)
+{
 	return digits[]
+		.enumerate
 		.slide(2)
 		.map!(pair => pair.staticArray!2)
 		.fold!((soFar, pair) =>
 			Result(
-				soFar.hasEqualPair || pair[0] == pair[1],
+				soFar.hasValidPair
+					|| validPair(digits, pair[0].index, pair[1].index),
 				soFar.increasing && pair[0] <= pair[1]
 			)
 		)(Result(false, true))
-		.unpack!((hasPair, increasing) =>
-			hasPair && increasing
+		.unpack!((hasValidPair, increasing) =>
+			hasValidPair && increasing
 		);
 }
 
 unittest {
-	assert( isValid([1, 1, 1, 1, 1, 1]));
-	assert( isValid([1, 2, 3, 3, 4, 5]));
-	assert(!isValid([2, 2, 3, 4, 5, 0]));
-	assert(!isValid([1, 2, 3, 7, 8, 9]));
+	assert( [1, 1, 1, 1, 1, 1].validWith!equalPair);
+	assert( [1, 2, 3, 3, 4, 5].validWith!equalPair);
+	assert(![1, 2, 3, 4, 5, 0].validWith!equalPair);
+	assert(![1, 2, 3, 7, 8, 9].validWith!equalPair);
+}
+
+unittest {
+	assert( [1, 1, 2, 2, 3, 3].validWith!isolatedPair);
+	assert(![1, 2, 3, 4, 4, 4].validWith!isolatedPair);
+	assert( [1, 1, 1, 1, 2, 2].validWith!isolatedPair);
 }
 
 void removeDecrease(ref int[6] digits)
@@ -99,33 +119,43 @@ unittest {
 	assert(a3 == [0, 0, 0, 0, 0, 0]);
 }
 
-int[6] next(int[6] password)
+int[6] next(alias valid)(int[6] password)
 {
 	
 	do {
 		password.increment;
 		password.removeDecrease;
-	} while (!password.isValid);
+	} while (!valid(password));
 
 	return password;
 }
 
 unittest {
-	assert([1, 1, 2, 3, 9, 9].next == [1, 1, 2, 4, 4, 4]);
-	assert([1, 2, 3, 4, 5, 5].next == [1, 2, 3, 4, 6, 6]);
+	assert([1, 1, 2, 3, 9, 9].next!(validWith!equalPair)
+		== [1, 1, 2, 4, 4, 4]);
+	assert([1, 2, 3, 4, 5, 5].next!(validWith!equalPair)
+		== [1, 2, 3, 4, 6, 6]);
 }
 
-struct Password
+struct Password(Flag!"strict" strict)
 {
+	static if (strict) {
+		alias valid = validWith!isolatedPair;
+	} else {
+		alias valid = validWith!equalPair;
+	}
+
 	private int[6] digits_;
 
 	invariant(digits_[].all!isDigit);
-	invariant(digits_.isValid);
+	invariant(valid(digits_));
 
 	static Password above(int[6] digits)
 	{
 		return Password(
-			digits.isValid ? digits : digits.next
+			valid(digits)
+				? digits
+				: digits.next!valid
 		);
 	}
 
@@ -143,6 +173,6 @@ struct Password
 
 	Password next() const
 	{
-		return Password(digits_.next);
+		return Password(digits_.next!valid);
 	}
 }
