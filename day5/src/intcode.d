@@ -52,10 +52,10 @@ struct Instruction
 	Mode[3] modes;
 }
 
-Word digits(Word n, uint lsd, uint count)
+Word digits(Word word, uint lsd, uint count)
 	in (count > 0)
 {
-	return (n / 10^^lsd) % 10^^count;
+	return (word / 10^^lsd) % 10^^count;
 }
 
 unittest {
@@ -63,9 +63,9 @@ unittest {
 	assert(1.digits(0, 2) == 01);
 }
 
-Word digit(Word n, Word d)
+Word digit(Word word, Word d)
 {
-	return digits(n, d, 1);
+	return word.digits(d, 1);
 }
 
 unittest {
