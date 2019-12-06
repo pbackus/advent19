@@ -12,6 +12,10 @@ enum Opcode
 	Multiply = 2,
 	Read = 3,
 	Write = 4,
+	JumpIfTrue = 5,
+	JumpIfFalse = 6,
+	LessThan = 7,
+	Equals = 8,
 	Halt = 99
 }
 
@@ -19,13 +23,16 @@ size_t increment(Opcode opcode)
 {
 	final switch(opcode) with (Opcode) {
 		case Add:
-			return 4;
 		case Multiply:
+		case LessThan:
+		case Equals:
 			return 4;
 		case Read:
-			return 2;
 		case Write:
 			return 2;
+		case JumpIfTrue:
+		case JumpIfFalse:
+			return 3;
 		case Halt:
 			return 1;
 	}
@@ -201,6 +208,24 @@ struct Computer(Input, Output)
 			case Write:
 				write(fetchArg(0));
 				break;
+			case JumpIfTrue:
+				if (fetchArg(0)) {
+					pc = fetchArg(1);
+					return;
+				}
+				break;
+			case JumpIfFalse:
+				if (!fetchArg(0)) {
+					pc = fetchArg(1);
+					return;
+				}
+				break;
+			case LessThan:
+				storeArg(2, fetchArg(0) < fetchArg(1));
+				break;
+			case Equals:
+				storeArg(2, fetchArg(0) == fetchArg(1));
+				break;
 			case Halt:
 				return;
 		}
@@ -235,4 +260,59 @@ auto computer(
 	)
 {
 	return Computer!(Input, Output)(program, input, output);
+}
+
+Word[] run(Program, Input)(Program program, Input input)
+	if (
+		isInputRange!Program && is(ElementType!Program : Word)
+		&& isInputRange!Input && is(ElementType!Input : Word)
+	)
+{
+	auto output = appender!(Word[]);
+	auto computer = computer(program, input, output);
+
+	computer.run;
+	return output.data;
+}
+
+unittest {
+	Word[] eqlEightPos = [3, 9, 8, 9, 10, 9, 4, 9, 99, -1, 8];
+	Word[] ltEightPos = [3, 9, 7, 9, 10, 9, 4, 9, 99, -1, 8];
+	Word[] eqlEightImm = [3, 3, 1108, -1, 8, 3, 4, 3, 99];
+	Word[] ltEightImm = [3, 3, 1107, -1, 8, 3, 4, 3, 99];
+
+	assert(eqlEightPos.run(only(8)) == [1]);
+	assert(eqlEightPos.run(only(1)) == [0]);
+
+	assert(ltEightPos.run(only(8)) == [0]);
+	assert(ltEightPos.run(only(1)) == [1]);
+
+	assert(eqlEightImm.run(only(8)) == [1]);
+	assert(eqlEightImm.run(only(1)) == [0]);
+
+	assert(ltEightImm.run(only(8)) == [0]);
+	assert(ltEightImm.run(only(1)) == [1]);
+}
+
+unittest {
+	Word[] nonZeroPos = [3, 12, 6, 12, 15, 1, 13, 14, 13, 4, 13, 99, -1, 0, 1, 9];
+	Word[] nonZeroImm = [3, 3, 1105, -1, 9, 1101, 0, 0, 12, 4, 12, 99, 1];
+
+	assert(nonZeroPos.run(only(1)) == [1]);
+	assert(nonZeroPos.run(only(0)) == [0]);
+
+	assert(nonZeroImm.run(only(1)) == [1]);
+	assert(nonZeroImm.run(only(0)) == [0]);
+}
+
+unittest {
+	Word[] cmpEight = [
+		3, 21, 1008, 21, 8, 20, 1005, 20, 22, 107, 8, 21, 20, 1006, 20, 31, 
+		1106, 0, 36, 98, 0, 0, 1002, 21, 125, 20, 4, 20, 1105, 1, 46, 104, 
+		999, 1105, 1, 46, 1101, 1000, 1, 20, 4, 20, 1105, 1, 46, 98, 99
+	];
+
+	assert(cmpEight.run(only(7)) == [999]);
+	assert(cmpEight.run(only(8)) == [1000]);
+	assert(cmpEight.run(only(9)) == [1001]);
 }
