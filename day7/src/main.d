@@ -19,6 +19,7 @@ auto readProgram(File input)
 void partOne()
 {
 	import std.array;
+	import std.conv;
 
 	stdin
 		.readProgram
@@ -29,7 +30,15 @@ void partOne()
 
 void partTwo()
 {
-	return;
+	import std.array;
+	import std.exception;
+
+	stdin
+		.readProgram
+		.array
+		.assumeUnique
+		.maxThrustWithFeedback
+		.writeln;
 }
 
 void main(string[] args)
