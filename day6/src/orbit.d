@@ -55,20 +55,20 @@ unittest {
 
 alias System = SpaceObject*[string];
 
-void addObject(ref System system, string name)
+void addObject(ref System sys, string name)
 {
-	system.update(
+	sys.update(
 		name,
 		() => new SpaceObject(name),
 		(SpaceObject* existing) => existing
 	);
 }
 
-void addSatellite(ref System system, string name, string satellite)
+void addSatellite(ref System sys, string name, string satellite)
 {
-	system.addObject(name);
-	system.addObject(satellite);
-	system[name].satellites ~= system[satellite];
+	sys.addObject(name);
+	sys.addObject(satellite);
+	sys[name].satellites ~= sys[satellite];
 }
 
 System system(Map)(Map orbitMap)
@@ -83,13 +83,13 @@ System system(Map)(Map orbitMap)
 	return result;
 }
 
-size_t orbitCount(System system)
+size_t orbitCount(System sys)
 {
-	return system["COM"].orbitCount;
+	return sys["COM"].orbitCount;
 }
 
 unittest {
-	System system = system([
+	System sys = system([
 		tuple("COM", "B"),
 		tuple("B", "C"),
 		tuple("C", "D"),
@@ -103,6 +103,6 @@ unittest {
 		tuple("K", "L")
 	]);
 
-	assert(system["COM"].satellites[0] == system["B"]);
-	assert(system.orbitCount == 42);
+	assert(sys["COM"].satellites[0] == sys["B"]);
+	assert(sys.orbitCount == 42);
 }

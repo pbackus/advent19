@@ -25,8 +25,8 @@ auto readOrbitMap(File input)
 
 void partOne()
 {
-	System system = stdin.readOrbitMap.system;
-	system["COM"].orbitCount.writeln;
+	System sys = stdin.readOrbitMap.system;
+	sys["COM"].orbitCount.writeln;
 }
 
 void partTwo()
