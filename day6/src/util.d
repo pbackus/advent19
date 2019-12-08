@@ -1,3 +1,7 @@
+import std.range.primitives;
+
+import optional;
+
 auto ref orElse(T)(auto ref T value, lazy T fallback)
 {
 	return value ? value : fallback;
@@ -23,7 +27,20 @@ template unpack(alias fun)
 	}
 }
 
-import std.range.primitives;
-
 enum bool isInputRangeOf(R, E) =
 	isInputRange!R && is(ElementType!R : E);
+
+/// Mondaic bind for Optional
+template flatMap(alias fun)
+{
+	auto flatMap(O)(O opt)
+		if (isOptional!O)
+	{
+		alias T = typeof(opt.front());
+
+		return opt.match!(
+			(T value) => fun(value),
+			() => O(none)
+		);
+	}
+}

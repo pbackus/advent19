@@ -31,7 +31,12 @@ void partOne()
 
 void partTwo()
 {
-	return;
+	System sys = stdin.readOrbitMap.system;
+	sys
+		.distance("YOU", "SAN")
+		.map!(d => d - 2)
+		.front
+		.writeln;
 }
 
 void main(string[] args)
