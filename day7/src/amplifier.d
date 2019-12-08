@@ -79,7 +79,7 @@ void amplifierThread(
 	while (!gotNext) {
 		receive(
 			(Tid tid) { next = tid; gotNext = true; },
-			(Word w)  { put(inputBuffer, w); yield; }
+			(Word w)  { put(inputBuffer, w); }
 		);
 	}
 
@@ -148,15 +148,12 @@ Word maxThrustWithFeedback(immutable Word[] program)
 	import std.algorithm;
 	import std.range;
 
-	Word result = Word.min;
-
-	foreach (permutation; iota(5, 10).permutations) {
-		Word[5] phases = permutation.staticArray!5;
-		Word output = program.runFeedback(phases);
-		if (output > result) result = output;
-	}
-
-	return result;
+	return iota(5, 10)
+		.permutations
+		.map!(phases =>
+			program.runFeedback(phases.staticArray!5)
+		)
+		.fold!max;
 }
 
 unittest {
