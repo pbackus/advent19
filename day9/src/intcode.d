@@ -166,7 +166,7 @@ struct Computer(Input, Output)
 {
 	Memory memory;
 	Instruction instruction;
-	size_t pc = 0;
+	size_t ip = 0;
 	size_t bp = 0;
 
 	Input input;
@@ -180,49 +180,49 @@ struct Computer(Input, Output)
 		this.output = output;
 	}
 
-	private Word fetch(Word addr, Mode mode)
+	private Word fetch(Word address, Mode mode)
 	{
 		final switch (mode) with (Mode) {
 			case Position:
-				return memory[addr];
+				return memory[address];
 			case Immediate:
-				return addr;
+				return address;
 			case Relative:
-				return memory[bp + addr];
+				return memory[bp + address];
 		}
 	}
 
-	private void store(Word addr, Mode mode, Word val)
+	private void store(Word address, Mode mode, Word value)
 	{
 		final switch (mode) with (Mode) {
 			case Position:
-				memory[addr] = val;
+				memory[address] = value;
 				break;
 			case Immediate:
 				throw new Exception("Invalid operation: immediate store");
 			case Relative:
-				memory[bp + addr] = val;
+				memory[bp + address] = value;
 		}
 	}
 
-	private Word arg(size_t i)
+	private Word param(size_t i)
 	{
-		return memory[pc + 1 + i];
+		return memory[ip + 1 + i];
 	}
 
-	private Word fetchArg(size_t i)
+	private Word fetchParam(size_t i)
 	{
-		return fetch(arg(i), instruction.modes[i]);
+		return fetch(param(i), instruction.modes[i]);
 	}
 
-	private void storeArg(size_t i, Word val)
+	private void storeParam(size_t i, Word value)
 	{
-		store(arg(i), instruction.modes[i], val);
+		store(param(i), instruction.modes[i], value);
 	}
 
 	private void binaryOp(string op)()
 	{
-		storeArg(2, mixin("fetchArg(0) ", op, " fetchArg(1)"));
+		storeParam(2, mixin("fetchParam(0) ", op, " fetchParam(1)"));
 	}
 
 	private Word read()
@@ -232,14 +232,14 @@ struct Computer(Input, Output)
 		return input.front;
 	}
 
-	private void write(Word val)
+	private void write(Word w)
 	{
-		put(output, val);
+		put(output, w);
 	}
 
 	void step()
 	{
-		instruction = memory[pc].decode;
+		instruction = memory[ip].decode;
 
 		final switch (instruction.opcode) with (Opcode) {
 			case Add:
@@ -249,20 +249,20 @@ struct Computer(Input, Output)
 				binaryOp!"*";
 				break;
 			case Read:
-				storeArg(0, read);
+				storeParam(0, read);
 				break;
 			case Write:
-				write(fetchArg(0));
+				write(fetchParam(0));
 				break;
 			case JumpIfTrue:
-				if (fetchArg(0)) {
-					pc = fetchArg(1);
+				if (fetchParam(0)) {
+					ip = fetchParam(1);
 					return;
 				}
 				break;
 			case JumpIfFalse:
-				if (!fetchArg(0)) {
-					pc = fetchArg(1);
+				if (!fetchParam(0)) {
+					ip = fetchParam(1);
 					return;
 				}
 				break;
@@ -273,13 +273,13 @@ struct Computer(Input, Output)
 				binaryOp!"==";
 				break;
 			case AdjustBase:
-				bp += fetchArg(0);
+				bp += fetchParam(0);
 				break;
 			case Halt:
 				return;
 		}
 
-		pc += instruction.opcode.increment;
+		ip += instruction.opcode.increment;
 	}
 
 	bool halted() const
